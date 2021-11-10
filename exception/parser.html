@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>cyclonedx.parser.environment API documentation</title>
-<meta name="description" content="Parser classes for reading installed packages in your current Python environment …" />
+<title>cyclonedx.exception.parser API documentation</title>
+<meta name="description" content="Exceptions that are specific error scenarios during occuring within Parsers in the CycloneDX library implementation." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -21,29 +21,24 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 <style>.homelink{display:block;font-size:2em;font-weight:bold;color:#555;padding-bottom:.5em;border-bottom:1px solid silver}.homelink:hover{color:inherit}.homelink img{max-width:20%;max-height:5em;margin:auto;margin-bottom:.3em}</style>
-<link rel="canonical" href="https://cyclonedx.github.io/cyclonedx-python-lib/cyclonedx/parser/environment.html">
+<link rel="canonical" href="https://cyclonedx.github.io/cyclonedx-python-lib/cyclonedx/exception/parser.html">
 <link rel="icon" href="https://cyclonedx.org/theme/assets/images/layout/logo.svg">
 </head>
 <body>
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>cyclonedx.parser.environment</code></h1>
+<h1 class="title">Module <code>cyclonedx.exception.parser</code></h1>
 </header>
 <section id="section-intro">
-<p>Parser classes for reading installed packages in your current Python environment.</p>
-<p>These parsers look at installed packages only - not what you have defined in any dependency tool - see the other Parsers
-if you want to derive CycloneDX from declared dependencies.</p>
-<p>The Environment Parsers support population of the following data about Components:</p>
+<p>Exceptions that are specific error scenarios during occuring within Parsers in the CycloneDX library implementation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/environment.py#L1-L81" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/exception/parser.py#L1-L29" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
-# This file is part of CycloneDX Python Lib
-#
 # Licensed under the Apache License, Version 2.0 (the &#34;License&#34;);
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -57,70 +52,20 @@ if you want to derive CycloneDX from declared dependencies.</p>
 # limitations under the License.
 #
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) OWASP Foundation. All Rights Reserved.
+#
 
 &#34;&#34;&#34;
-Parser classes for reading installed packages in your current Python environment.
-
-These parsers look at installed packages only - not what you have defined in any dependency tool - see the other Parsers
-if you want to derive CycloneDX from declared dependencies.
-
-
-The Environment Parsers support population of the following data about Components:
-
+Exceptions that are specific error scenarios during occuring within Parsers in the CycloneDX library implementation.
 &#34;&#34;&#34;
 
-import sys
-from pkg_resources import DistInfoDistribution  # type: ignore
-
-if sys.version_info &gt;= (3, 8, 0):
-    from importlib.metadata import metadata
-    import email
-else:
-    from importlib_metadata import metadata  # type: ignore
-    import email
-
-from . import BaseParser
-
-from ..model.component import Component
+from . import CycloneDxException
 
 
-class EnvironmentParser(BaseParser):
+class UnknownHashTypeException(CycloneDxException):
     &#34;&#34;&#34;
-    This will look at the current Python environment and list out all installed packages.
-
-    Best used when you have virtual Python environments per project.
+    Exception raised when we are unable to determine the type of hash from a composite hash string.
     &#34;&#34;&#34;
-
-    def __init__(self) -&gt; None:
-        super().__init__()
-
-        import pkg_resources
-
-        i: DistInfoDistribution
-        for i in iter(pkg_resources.working_set):
-            c = Component(name=i.project_name, version=i.version)
-
-            i_metadata = self._get_metadata_for_package(i.project_name)
-            if &#39;Author&#39; in i_metadata.keys():
-                c.set_author(author=i_metadata.get(&#39;Author&#39;))
-
-            if &#39;License&#39; in i_metadata.keys() and i_metadata.get(&#39;License&#39;) != &#39;UNKNOWN&#39;:
-                c.set_license(license_str=i_metadata.get(&#39;License&#39;))
-
-            if &#39;Classifier&#39; in i_metadata.keys():
-                for classifier in i_metadata.get_all(&#39;Classifier&#39;):
-                    if str(classifier).startswith(&#39;License :: OSI Approved :: &#39;):
-                        c.set_license(license_str=str(classifier).replace(&#39;License :: OSI Approved :: &#39;, &#39;&#39;).strip())
-
-            self._components.append(c)
-
-    @staticmethod
-    def _get_metadata_for_package(package_name: str) -&gt; email.message.Message:
-        if sys.version_info &gt;= (3, 8, 0):
-            return metadata(package_name)
-        else:
-            return metadata(package_name)</code></pre>
+    pass</code></pre>
 </details>
 </section>
 <section>
@@ -132,59 +77,28 @@ class EnvironmentParser(BaseParser):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="cyclonedx.parser.environment.EnvironmentParser"><code class="flex name class">
-<span>class <span class="ident">EnvironmentParser</span></span>
+<dt id="cyclonedx.exception.parser.UnknownHashTypeException"><code class="flex name class">
+<span>class <span class="ident">UnknownHashTypeException</span></span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This will look at the current Python environment and list out all installed packages.</p>
-<p>Best used when you have virtual Python environments per project.</p>
-<p>:rtype: object</p></div>
+<div class="desc"><p>Exception raised when we are unable to determine the type of hash from a composite hash string.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/environment.py#L46-L81" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/exception/parser.py#L25-L29" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnvironmentParser(BaseParser):
+<pre><code class="python">class UnknownHashTypeException(CycloneDxException):
     &#34;&#34;&#34;
-    This will look at the current Python environment and list out all installed packages.
-
-    Best used when you have virtual Python environments per project.
+    Exception raised when we are unable to determine the type of hash from a composite hash string.
     &#34;&#34;&#34;
-
-    def __init__(self) -&gt; None:
-        super().__init__()
-
-        import pkg_resources
-
-        i: DistInfoDistribution
-        for i in iter(pkg_resources.working_set):
-            c = Component(name=i.project_name, version=i.version)
-
-            i_metadata = self._get_metadata_for_package(i.project_name)
-            if &#39;Author&#39; in i_metadata.keys():
-                c.set_author(author=i_metadata.get(&#39;Author&#39;))
-
-            if &#39;License&#39; in i_metadata.keys() and i_metadata.get(&#39;License&#39;) != &#39;UNKNOWN&#39;:
-                c.set_license(license_str=i_metadata.get(&#39;License&#39;))
-
-            if &#39;Classifier&#39; in i_metadata.keys():
-                for classifier in i_metadata.get_all(&#39;Classifier&#39;):
-                    if str(classifier).startswith(&#39;License :: OSI Approved :: &#39;):
-                        c.set_license(license_str=str(classifier).replace(&#39;License :: OSI Approved :: &#39;, &#39;&#39;).strip())
-
-            self._components.append(c)
-
-    @staticmethod
-    def _get_metadata_for_package(package_name: str) -&gt; email.message.Message:
-        if sys.version_info &gt;= (3, 8, 0):
-            return metadata(package_name)
-        else:
-            return metadata(package_name)</code></pre>
+    pass</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="cyclonedx.parser.BaseParser" href="index.html#cyclonedx.parser.BaseParser">BaseParser</a></li>
-<li>abc.ABC</li>
+<li><a title="cyclonedx.exception.CycloneDxException" href="index.html#cyclonedx.exception.CycloneDxException">CycloneDxException</a></li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
 </ul>
 </dd>
 </dl>
@@ -198,7 +112,7 @@ class EnvironmentParser(BaseParser):
 </header>
 <div class="gcse-search" style="height: 70px"
 data-as_oq="site:cyclonedx.github.io inurl:github.com/cyclonedx/cyclonedx-python-lib"
-data-gaCategoryParameter="cyclonedx.parser.environment">
+data-gaCategoryParameter="cyclonedx.exception.parser">
 </div>
 <h1>Index</h1>
 <div class="toc">
@@ -207,13 +121,13 @@ data-gaCategoryParameter="cyclonedx.parser.environment">
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="cyclonedx.parser" href="index.html">cyclonedx.parser</a></code></li>
+<li><code><a title="cyclonedx.exception" href="index.html">cyclonedx.exception</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="cyclonedx.parser.environment.EnvironmentParser" href="#cyclonedx.parser.environment.EnvironmentParser">EnvironmentParser</a></code></h4>
+<h4><code><a title="cyclonedx.exception.parser.UnknownHashTypeException" href="#cyclonedx.exception.parser.UnknownHashTypeException">UnknownHashTypeException</a></code></h4>
 </li>
 </ul>
 </li>

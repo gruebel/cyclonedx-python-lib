@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/conda.py#L1-L95" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/conda.py#L1-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -68,7 +68,7 @@ class _BaseCondaParser(BaseParser, metaclass=ABCMeta):
     &#34;&#34;&#34;Internal abstract parser - not for programmatic use.
     &#34;&#34;&#34;
 
-    def __init__(self, conda_data: str):
+    def __init__(self, conda_data: str) -&gt; None:
         super().__init__()
         self._conda_packages: List[CondaPackage] = []
         self._parse_to_conda_packages(data_str=conda_data)
@@ -87,7 +87,7 @@ class _BaseCondaParser(BaseParser, metaclass=ABCMeta):
         &#34;&#34;&#34;
         pass
 
-    def _conda_packages_to_components(self):
+    def _conda_packages_to_components(self) -&gt; None:
         &#34;&#34;&#34;
         Converts the parsed `CondaPackage` instances into `Component` instances.
 
@@ -148,11 +148,12 @@ class CondaListExplicitParser(_BaseCondaParser):
 </code></dt>
 <dd>
 <div class="desc"><p>This parser is intended to receive the output from the command <code>conda list --explicit</code> or
-<code>conda list --explicit --md5</code>.</p></div>
+<code>conda list --explicit --md5</code>.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/conda.py#L84-L95" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/conda.py#L84-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class CondaListExplicitParser(_BaseCondaParser):
     &#34;&#34;&#34;
@@ -179,11 +180,12 @@ class CondaListExplicitParser(_BaseCondaParser):
 <span>(</span><span>conda_data: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This parser is intended to receive the output from the command <code>conda list --json</code>.</p></div>
+<div class="desc"><p>This parser is intended to receive the output from the command <code>conda list --json</code>.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/conda.py#L70-L81" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/conda.py#L70-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class CondaListJsonParser(_BaseCondaParser):
     &#34;&#34;&#34;

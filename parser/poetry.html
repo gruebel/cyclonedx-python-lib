@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/poetry.py#L1-L56" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/poetry.py#L1-L59" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -55,18 +55,19 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) OWASP Foundation. All Rights Reserved.
 
-import toml
+from toml import loads as load_toml
 
 from . import BaseParser
+from ..exception.parser import UnknownHashTypeException
 from ..model import ExternalReference, ExternalReferenceType, HashType
 from ..model.component import Component
 
 
 class PoetryParser(BaseParser):
 
-    def __init__(self, poetry_lock_contents: str):
+    def __init__(self, poetry_lock_contents: str) -&gt; None:
         super().__init__()
-        poetry_lock = toml.loads(poetry_lock_contents)
+        poetry_lock = load_toml(poetry_lock_contents)
 
         for package in poetry_lock[&#39;package&#39;]:
             component = Component(
@@ -74,21 +75,23 @@ class PoetryParser(BaseParser):
             )
 
             for file_metadata in poetry_lock[&#39;metadata&#39;][&#39;files&#39;][package[&#39;name&#39;]]:
-                component.add_external_reference(ExternalReference(
-                    reference_type=ExternalReferenceType.DISTRIBUTION,
-                    url=component.get_pypi_url(),
-                    comment=f&#39;Distribution file: {file_metadata[&#34;file&#34;]}&#39;,
-                    hashes=[
-                        HashType.from_composite_str(file_metadata[&#39;hash&#39;])
-                    ]
-                ))
+                try:
+                    component.add_external_reference(ExternalReference(
+                        reference_type=ExternalReferenceType.DISTRIBUTION,
+                        url=component.get_pypi_url(),
+                        comment=f&#39;Distribution file: {file_metadata[&#34;file&#34;]}&#39;,
+                        hashes=[HashType.from_composite_str(file_metadata[&#39;hash&#39;])]
+                    ))
+                except UnknownHashTypeException:
+                    # @todo add logging for this type of exception?
+                    pass
 
             self._components.append(component)
 
 
 class PoetryFileParser(PoetryParser):
 
-    def __init__(self, poetry_lock_filename: str):
+    def __init__(self, poetry_lock_filename: str) -&gt; None:
         with open(poetry_lock_filename) as r:
             super(PoetryFileParser, self).__init__(poetry_lock_contents=r.read())
         r.close()</code></pre>
@@ -109,15 +112,16 @@ class PoetryFileParser(PoetryParser):
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/poetry.py#L51-L56" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/poetry.py#L54-L59" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class PoetryFileParser(PoetryParser):
 
-    def __init__(self, poetry_lock_filename: str):
+    def __init__(self, poetry_lock_filename: str) -&gt; None:
         with open(poetry_lock_filename) as r:
             super(PoetryFileParser, self).__init__(poetry_lock_contents=r.read())
         r.close()</code></pre>
@@ -135,17 +139,18 @@ inheritance.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/poetry.py#L27-L48" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/poetry.py#L28-L51" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class PoetryParser(BaseParser):
 
-    def __init__(self, poetry_lock_contents: str):
+    def __init__(self, poetry_lock_contents: str) -&gt; None:
         super().__init__()
-        poetry_lock = toml.loads(poetry_lock_contents)
+        poetry_lock = load_toml(poetry_lock_contents)
 
         for package in poetry_lock[&#39;package&#39;]:
             component = Component(
@@ -153,14 +158,16 @@ inheritance.</p></div>
             )
 
             for file_metadata in poetry_lock[&#39;metadata&#39;][&#39;files&#39;][package[&#39;name&#39;]]:
-                component.add_external_reference(ExternalReference(
-                    reference_type=ExternalReferenceType.DISTRIBUTION,
-                    url=component.get_pypi_url(),
-                    comment=f&#39;Distribution file: {file_metadata[&#34;file&#34;]}&#39;,
-                    hashes=[
-                        HashType.from_composite_str(file_metadata[&#39;hash&#39;])
-                    ]
-                ))
+                try:
+                    component.add_external_reference(ExternalReference(
+                        reference_type=ExternalReferenceType.DISTRIBUTION,
+                        url=component.get_pypi_url(),
+                        comment=f&#39;Distribution file: {file_metadata[&#34;file&#34;]}&#39;,
+                        hashes=[HashType.from_composite_str(file_metadata[&#39;hash&#39;])]
+                    ))
+                except UnknownHashTypeException:
+                    # @todo add logging for this type of exception?
+                    pass
 
             self._components.append(component)</code></pre>
 </details>

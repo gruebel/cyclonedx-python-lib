@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/pipenv.py#L1-L58" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/pipenv.py#L1-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -64,7 +64,7 @@ from ..model.component import Component
 
 class PipEnvParser(BaseParser):
 
-    def __init__(self, pipenv_contents: str):
+    def __init__(self, pipenv_contents: str) -&gt; None:
         super().__init__()
 
         pipfile_lock_contents = json.loads(pipenv_contents)
@@ -91,7 +91,7 @@ class PipEnvParser(BaseParser):
 
 class PipEnvFileParser(PipEnvParser):
 
-    def __init__(self, pipenv_lock_filename: str):
+    def __init__(self, pipenv_lock_filename: str) -&gt; None:
         with open(pipenv_lock_filename) as r:
             super(PipEnvFileParser, self).__init__(pipenv_contents=r.read())</code></pre>
 </details>
@@ -111,15 +111,16 @@ class PipEnvFileParser(PipEnvParser):
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/pipenv.py#L54-L58" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/pipenv.py#L54-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class PipEnvFileParser(PipEnvParser):
 
-    def __init__(self, pipenv_lock_filename: str):
+    def __init__(self, pipenv_lock_filename: str) -&gt; None:
         with open(pipenv_lock_filename) as r:
             super(PipEnvFileParser, self).__init__(pipenv_contents=r.read())</code></pre>
 </details>
@@ -136,15 +137,16 @@ inheritance.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/pipenv.py#L27-L51" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/pipenv.py#L27-L51" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class PipEnvParser(BaseParser):
 
-    def __init__(self, pipenv_contents: str):
+    def __init__(self, pipenv_contents: str) -&gt; None:
         super().__init__()
 
         pipfile_lock_contents = json.loads(pipenv_contents)

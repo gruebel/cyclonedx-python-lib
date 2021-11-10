@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L1-L210" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L1-L220" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -56,6 +56,8 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 import hashlib
 from enum import Enum
 from typing import List, Union
+
+from ..exception.parser import UnknownHashTypeException
 
 &#34;&#34;&#34;
 Uniform set of models to represent objects within a CycloneDX software bill-of-materials.
@@ -107,14 +109,14 @@ class HashAlgorithm(Enum):
 
 class HashType:
     &#34;&#34;&#34;
-    This is out internal representation of the hashType complex type within the CycloneDX standard.
+    This is our internal representation of the hashType complex type within the CycloneDX standard.
 
     .. note::
         See the CycloneDX Schema for hashType: https://cyclonedx.org/docs/1.3/#type_hashType
     &#34;&#34;&#34;
 
     @staticmethod
-    def from_composite_str(composite_hash: str):
+    def from_composite_str(composite_hash: str) -&gt; &#39;HashType&#39;:
         &#34;&#34;&#34;
         Attempts to convert a string which includes both the Hash Algorithm and Hash Value and represent using our
         internal model classes.
@@ -124,26 +126,34 @@ class HashType:
                 Composite Hash string of the format `HASH_ALGORITHM`:`HASH_VALUE`.
                 Example: `sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b`.
 
+        Raises:
+            `UnknownHashTypeException` if the type of hash cannot be determined.
+
         Returns:
-            An instance of `HashType` when possible, else `None`.
+            An instance of `HashType`.
         &#34;&#34;&#34;
-        algorithm = None
         parts = composite_hash.split(&#39;:&#39;)
 
         algorithm_prefix = parts[0].lower()
         if algorithm_prefix == &#39;md5&#39;:
-            algorithm = HashAlgorithm.MD5
+            return HashType(
+                algorithm=HashAlgorithm.MD5,
+                hash_value=parts[1].lower()
+            )
         elif algorithm_prefix[0:3] == &#39;sha&#39;:
-            algorithm = getattr(HashAlgorithm, &#39;SHA_{}&#39;.format(algorithm_prefix[3:]))
+            return HashType(
+                algorithm=getattr(HashAlgorithm, &#39;SHA_{}&#39;.format(algorithm_prefix[3:])),
+                hash_value=parts[1].lower()
+            )
         elif algorithm_prefix[0:6] == &#39;blake2&#39;:
-            algorithm = getattr(HashAlgorithm, &#39;BLAKE2b_{}&#39;.format(algorithm_prefix[6:]))
+            return HashType(
+                algorithm=getattr(HashAlgorithm, &#39;BLAKE2b_{}&#39;.format(algorithm_prefix[6:])),
+                hash_value=parts[1].lower()
+            )
 
-        return HashType(
-            algorithm=algorithm,
-            hash_value=parts[1].lower()
-        )
+        raise UnknownHashTypeException(f&#34;Unable to determine hash type from &#39;{composite_hash}&#39;&#34;)
 
-    def __init__(self, algorithm: HashAlgorithm, hash_value: str):
+    def __init__(self, algorithm: HashAlgorithm, hash_value: str) -&gt; None:
         self._algorithm = algorithm
         self._value = hash_value
 
@@ -153,7 +163,7 @@ class HashType:
     def get_hash_value(self) -&gt; str:
         return self._value
 
-    def __repr__(self):
+    def __repr__(self) -&gt; str:
         return f&#39;&lt;Hash {self._algorithm.value}:{self._value}&gt;&#39;
 
 
@@ -191,14 +201,14 @@ class ExternalReference:
         See the CycloneDX Schema definition: https://cyclonedx.org/docs/1.3/#type_externalReference
     &#34;&#34;&#34;
 
-    def __init__(self, reference_type: ExternalReferenceType, url: str, comment: str = None,
-                 hashes: List[HashType] = None):
+    def __init__(self, reference_type: ExternalReferenceType, url: str, comment: str = &#39;&#39;,
+                 hashes: Union[List[HashType], None] = None) -&gt; None:
         self._reference_type: ExternalReferenceType = reference_type
         self._url = url
         self._comment = comment
         self._hashes: List[HashType] = hashes if hashes else []
 
-    def add_hash(self, our_hash: HashType):
+    def add_hash(self, our_hash: HashType) -&gt; None:
         &#34;&#34;&#34;
         Adds a hash that pins/identifies this External Reference.
 
@@ -244,7 +254,7 @@ class ExternalReference:
         &#34;&#34;&#34;
         return self._url
 
-    def __repr__(self):
+    def __repr__(self) -&gt; str:
         return f&#39;&lt;ExternalReference {self._reference_type.name}, {self._url}&gt; {self._hashes}&#39;</code></pre>
 </details>
 </section>
@@ -283,7 +293,7 @@ Absolute path to file to hash as <code>str</code></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L30-L45" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L32-L47" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sha1sum(filename: str) -&gt; str:
     &#34;&#34;&#34;
@@ -310,7 +320,7 @@ Absolute path to file to hash as <code>str</code></p>
 <dl>
 <dt id="cyclonedx.model.ExternalReference"><code class="flex name class">
 <span>class <span class="ident">ExternalReference</span></span>
-<span>(</span><span>reference_type: <a title="cyclonedx.model.ExternalReferenceType" href="#cyclonedx.model.ExternalReferenceType">ExternalReferenceType</a>, url: str, comment: str = None, hashes: List[<a title="cyclonedx.model.HashType" href="#cyclonedx.model.HashType">HashType</a>] = None)</span>
+<span>(</span><span>reference_type: <a title="cyclonedx.model.ExternalReferenceType" href="#cyclonedx.model.ExternalReferenceType">ExternalReferenceType</a>, url: str, comment: str = '', hashes: Optional[List[<a title="cyclonedx.model.HashType" href="#cyclonedx.model.HashType">HashType</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This is out internal representation of an ExternalReference complex type that can be used in multiple places within
@@ -322,7 +332,7 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L147-L210" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L157-L220" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class ExternalReference:
     &#34;&#34;&#34;
@@ -333,14 +343,14 @@ a CycloneDX BOM document.</p>
         See the CycloneDX Schema definition: https://cyclonedx.org/docs/1.3/#type_externalReference
     &#34;&#34;&#34;
 
-    def __init__(self, reference_type: ExternalReferenceType, url: str, comment: str = None,
-                 hashes: List[HashType] = None):
+    def __init__(self, reference_type: ExternalReferenceType, url: str, comment: str = &#39;&#39;,
+                 hashes: Union[List[HashType], None] = None) -&gt; None:
         self._reference_type: ExternalReferenceType = reference_type
         self._url = url
         self._comment = comment
         self._hashes: List[HashType] = hashes if hashes else []
 
-    def add_hash(self, our_hash: HashType):
+    def add_hash(self, our_hash: HashType) -&gt; None:
         &#34;&#34;&#34;
         Adds a hash that pins/identifies this External Reference.
 
@@ -386,13 +396,13 @@ a CycloneDX BOM document.</p>
         &#34;&#34;&#34;
         return self._url
 
-    def __repr__(self):
+    def __repr__(self) -&gt; str:
         return f&#39;&lt;ExternalReference {self._reference_type.name}, {self._url}&gt; {self._hashes}&#39;</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="cyclonedx.model.ExternalReference.add_hash"><code class="name flex">
-<span>def <span class="ident">add_hash</span></span>(<span>self, our_hash: <a title="cyclonedx.model.HashType" href="#cyclonedx.model.HashType">HashType</a>)</span>
+<span>def <span class="ident">add_hash</span></span>(<span>self, our_hash: <a title="cyclonedx.model.HashType" href="#cyclonedx.model.HashType">HashType</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a hash that pins/identifies this External Reference.</p>
@@ -402,9 +412,9 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L163-L171" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L173-L181" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def add_hash(self, our_hash: HashType):
+<pre><code class="python">def add_hash(self, our_hash: HashType) -&gt; None:
     &#34;&#34;&#34;
     Adds a hash that pins/identifies this External Reference.
 
@@ -425,7 +435,7 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L173-L180" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L183-L190" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_comment(self) -&gt; Union[str, None]:
     &#34;&#34;&#34;
@@ -447,7 +457,7 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L182-L189" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L192-L199" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_hashes(self) -&gt; List[HashType]:
     &#34;&#34;&#34;
@@ -469,7 +479,7 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L191-L198" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L201-L208" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_reference_type(self) -&gt; ExternalReferenceType:
     &#34;&#34;&#34;
@@ -491,7 +501,7 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L200-L207" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L210-L217" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_url(self) -&gt; str:
     &#34;&#34;&#34;
@@ -518,7 +528,7 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L122-L144" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L132-L154" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class ExternalReferenceType(Enum):
     &#34;&#34;&#34;
@@ -629,7 +639,7 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L48-L67" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L50-L69" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HashAlgorithm(Enum):
     &#34;&#34;&#34;
@@ -713,7 +723,7 @@ a CycloneDX BOM document.</p>
 <span>(</span><span>algorithm: <a title="cyclonedx.model.HashAlgorithm" href="#cyclonedx.model.HashAlgorithm">HashAlgorithm</a>, hash_value: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This is out internal representation of the hashType complex type within the CycloneDX standard.</p>
+<div class="desc"><p>This is our internal representation of the hashType complex type within the CycloneDX standard.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>See the CycloneDX Schema for hashType: <a href="https://cyclonedx.org/docs/1.3/#type_hashType">https://cyclonedx.org/docs/1.3/#type_hashType</a></p>
@@ -721,18 +731,18 @@ a CycloneDX BOM document.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L70-L119" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L72-L129" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HashType:
     &#34;&#34;&#34;
-    This is out internal representation of the hashType complex type within the CycloneDX standard.
+    This is our internal representation of the hashType complex type within the CycloneDX standard.
 
     .. note::
         See the CycloneDX Schema for hashType: https://cyclonedx.org/docs/1.3/#type_hashType
     &#34;&#34;&#34;
 
     @staticmethod
-    def from_composite_str(composite_hash: str):
+    def from_composite_str(composite_hash: str) -&gt; &#39;HashType&#39;:
         &#34;&#34;&#34;
         Attempts to convert a string which includes both the Hash Algorithm and Hash Value and represent using our
         internal model classes.
@@ -742,26 +752,34 @@ a CycloneDX BOM document.</p>
                 Composite Hash string of the format `HASH_ALGORITHM`:`HASH_VALUE`.
                 Example: `sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b`.
 
+        Raises:
+            `UnknownHashTypeException` if the type of hash cannot be determined.
+
         Returns:
-            An instance of `HashType` when possible, else `None`.
+            An instance of `HashType`.
         &#34;&#34;&#34;
-        algorithm = None
         parts = composite_hash.split(&#39;:&#39;)
 
         algorithm_prefix = parts[0].lower()
         if algorithm_prefix == &#39;md5&#39;:
-            algorithm = HashAlgorithm.MD5
+            return HashType(
+                algorithm=HashAlgorithm.MD5,
+                hash_value=parts[1].lower()
+            )
         elif algorithm_prefix[0:3] == &#39;sha&#39;:
-            algorithm = getattr(HashAlgorithm, &#39;SHA_{}&#39;.format(algorithm_prefix[3:]))
+            return HashType(
+                algorithm=getattr(HashAlgorithm, &#39;SHA_{}&#39;.format(algorithm_prefix[3:])),
+                hash_value=parts[1].lower()
+            )
         elif algorithm_prefix[0:6] == &#39;blake2&#39;:
-            algorithm = getattr(HashAlgorithm, &#39;BLAKE2b_{}&#39;.format(algorithm_prefix[6:]))
+            return HashType(
+                algorithm=getattr(HashAlgorithm, &#39;BLAKE2b_{}&#39;.format(algorithm_prefix[6:])),
+                hash_value=parts[1].lower()
+            )
 
-        return HashType(
-            algorithm=algorithm,
-            hash_value=parts[1].lower()
-        )
+        raise UnknownHashTypeException(f&#34;Unable to determine hash type from &#39;{composite_hash}&#39;&#34;)
 
-    def __init__(self, algorithm: HashAlgorithm, hash_value: str):
+    def __init__(self, algorithm: HashAlgorithm, hash_value: str) -&gt; None:
         self._algorithm = algorithm
         self._value = hash_value
 
@@ -771,13 +789,13 @@ a CycloneDX BOM document.</p>
     def get_hash_value(self) -&gt; str:
         return self._value
 
-    def __repr__(self):
+    def __repr__(self) -&gt; str:
         return f&#39;&lt;Hash {self._algorithm.value}:{self._value}&gt;&#39;</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="cyclonedx.model.HashType.from_composite_str"><code class="name flex">
-<span>def <span class="ident">from_composite_str</span></span>(<span>composite_hash: str)</span>
+<span>def <span class="ident">from_composite_str</span></span>(<span>composite_hash: str) ‑> <a title="cyclonedx.model.HashType" href="#cyclonedx.model.HashType">HashType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to convert a string which includes both the Hash Algorithm and Hash Value and represent using our
@@ -786,15 +804,17 @@ internal model classes.</p>
 <p>composite_hash:
 Composite Hash string of the format <code>HASH_ALGORITHM</code>:<code>HASH_VALUE</code>.
 Example: <code>sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b</code>.</p>
+<h2 id="raises">Raises</h2>
+<p><code>UnknownHashTypeException</code> if the type of hash cannot be determined.</p>
 <h2 id="returns">Returns</h2>
-<p>An instance of <code><a title="cyclonedx.model.HashType" href="#cyclonedx.model.HashType">HashType</a></code> when possible, else <code>None</code>.</p></div>
+<p>An instance of <code><a title="cyclonedx.model.HashType" href="#cyclonedx.model.HashType">HashType</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L78-L106" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L80-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@staticmethod
-def from_composite_str(composite_hash: str):
+def from_composite_str(composite_hash: str) -&gt; &#39;HashType&#39;:
     &#34;&#34;&#34;
     Attempts to convert a string which includes both the Hash Algorithm and Hash Value and represent using our
     internal model classes.
@@ -804,24 +824,32 @@ def from_composite_str(composite_hash: str):
             Composite Hash string of the format `HASH_ALGORITHM`:`HASH_VALUE`.
             Example: `sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b`.
 
+    Raises:
+        `UnknownHashTypeException` if the type of hash cannot be determined.
+
     Returns:
-        An instance of `HashType` when possible, else `None`.
+        An instance of `HashType`.
     &#34;&#34;&#34;
-    algorithm = None
     parts = composite_hash.split(&#39;:&#39;)
 
     algorithm_prefix = parts[0].lower()
     if algorithm_prefix == &#39;md5&#39;:
-        algorithm = HashAlgorithm.MD5
+        return HashType(
+            algorithm=HashAlgorithm.MD5,
+            hash_value=parts[1].lower()
+        )
     elif algorithm_prefix[0:3] == &#39;sha&#39;:
-        algorithm = getattr(HashAlgorithm, &#39;SHA_{}&#39;.format(algorithm_prefix[3:]))
+        return HashType(
+            algorithm=getattr(HashAlgorithm, &#39;SHA_{}&#39;.format(algorithm_prefix[3:])),
+            hash_value=parts[1].lower()
+        )
     elif algorithm_prefix[0:6] == &#39;blake2&#39;:
-        algorithm = getattr(HashAlgorithm, &#39;BLAKE2b_{}&#39;.format(algorithm_prefix[6:]))
+        return HashType(
+            algorithm=getattr(HashAlgorithm, &#39;BLAKE2b_{}&#39;.format(algorithm_prefix[6:])),
+            hash_value=parts[1].lower()
+        )
 
-    return HashType(
-        algorithm=algorithm,
-        hash_value=parts[1].lower()
-    )</code></pre>
+    raise UnknownHashTypeException(f&#34;Unable to determine hash type from &#39;{composite_hash}&#39;&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -835,7 +863,7 @@ def from_composite_str(composite_hash: str):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L112-L113" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L122-L123" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_algorithm(self) -&gt; HashAlgorithm:
     return self._algorithm</code></pre>
@@ -849,7 +877,7 @@ def from_composite_str(composite_hash: str):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/__init__.py#L115-L116" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/__init__.py#L125-L126" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_hash_value(self) -&gt; str:
     return self._value</code></pre>

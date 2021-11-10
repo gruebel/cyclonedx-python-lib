@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L1-L314" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L1-L319" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -57,8 +57,10 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 
 from enum import Enum
 from os.path import exists
-from packageurl import PackageURL
-from typing import List
+from typing import List, Optional
+
+# See https://github.com/package-url/packageurl-python/issues/65
+from packageurl import PackageURL  # type: ignore
 
 from . import ExternalReference, HashAlgorithm, HashType, sha1sum
 from .vulnerability import Vulnerability
@@ -90,7 +92,7 @@ class Component:
     &#34;&#34;&#34;
 
     @staticmethod
-    def for_file(absolute_file_path: str, path_for_bom: str = None):
+    def for_file(absolute_file_path: str, path_for_bom: Optional[str]) -&gt; &#39;Component&#39;:
         &#34;&#34;&#34;
         Helper method to create a Component that represents the provided local file as a Component.
 
@@ -107,7 +109,6 @@ class Component:
             raise FileExistsError(&#39;Supplied file path \&#39;{}\&#39; does not exist&#39;.format(absolute_file_path))
 
         sha1_hash: str = sha1sum(filename=absolute_file_path)
-
         return Component(
             name=path_for_bom if path_for_bom else absolute_file_path,
             version=&#39;0.0.0-{}&#39;.format(sha1_hash[0:12]),
@@ -118,26 +119,27 @@ class Component:
             package_url_type=&#39;generic&#39;
         )
 
-    def __init__(self, name: str, version: str, namespace: str = None, qualifiers: str = None, subpath: str = None,
-                 hashes: List[HashType] = None, author: str = None, description: str = None, license_str: str = None,
-                 component_type: ComponentType = ComponentType.LIBRARY, package_url_type: str = &#39;pypi&#39;):
-        self._package_url_type = package_url_type
-        self._namespace = namespace
-        self._name = name
-        self._version = version
-        self._type = component_type
-        self._qualifiers = qualifiers
-        self._subpath = subpath
+    def __init__(self, name: str, version: str, namespace: Optional[str] = None, qualifiers: Optional[str] = None,
+                 subpath: Optional[str] = None, hashes: Optional[List[HashType]] = None, author: Optional[str] = None,
+                 description: Optional[str] = None, license_str: Optional[str] = None,
+                 component_type: ComponentType = ComponentType.LIBRARY, package_url_type: str = &#39;pypi&#39;) -&gt; None:
+        self._package_url_type: str = package_url_type
+        self._namespace: Optional[str] = namespace
+        self._name: str = name
+        self._version: str = version
+        self._type: ComponentType = component_type
+        self._qualifiers: Optional[str] = qualifiers
+        self._subpath: Optional[str] = subpath
 
-        self._author: str = author
-        self._description: str = description
-        self._license: str = license_str
+        self._author: Optional[str] = author
+        self._description: Optional[str] = description
+        self._license: Optional[str] = license_str
 
         self._hashes: List[HashType] = hashes if hashes else []
         self._vulnerabilites: List[Vulnerability] = []
         self._external_references: List[ExternalReference] = []
 
-    def add_external_reference(self, reference: ExternalReference):
+    def add_external_reference(self, reference: ExternalReference) -&gt; None:
         &#34;&#34;&#34;
         Add an `ExternalReference` to this `Component`.
 
@@ -147,7 +149,7 @@ class Component:
         &#34;&#34;&#34;
         self._external_references.append(reference)
 
-    def add_hash(self, a_hash: HashType):
+    def add_hash(self, a_hash: HashType) -&gt; None:
         &#34;&#34;&#34;
         Adds a hash that pins/identifies this Component.
 
@@ -157,7 +159,7 @@ class Component:
         &#34;&#34;&#34;
         self._hashes.append(a_hash)
 
-    def add_vulnerability(self, vulnerability: Vulnerability):
+    def add_vulnerability(self, vulnerability: Vulnerability) -&gt; None:
         &#34;&#34;&#34;
         Add a Vulnerability to this Component.
 
@@ -170,21 +172,21 @@ class Component:
         &#34;&#34;&#34;
         self._vulnerabilites.append(vulnerability)
 
-    def get_author(self) -&gt; str:
+    def get_author(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the author of this Component.
 
         Returns:
-            Declared author of this Component as `str`.
+            Declared author of this Component as `str` if set, else `None`.
         &#34;&#34;&#34;
         return self._author
 
-    def get_description(self) -&gt; str:
+    def get_description(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the description of this Component.
 
         Returns:
-            Declared description of this Component as `str`.
+            Declared description of this Component as `str` if set, else `None`.
         &#34;&#34;&#34;
         return self._description
 
@@ -206,12 +208,12 @@ class Component:
         &#34;&#34;&#34;
         return self._hashes
 
-    def get_license(self) -&gt; str:
+    def get_license(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the license of this Component.
 
         Returns:
-            Declared license of this Component as `str`.
+            Declared license of this Component as `str` if set, else `None`.
         &#34;&#34;&#34;
         return self._license
 
@@ -224,7 +226,7 @@ class Component:
         &#34;&#34;&#34;
         return self._name
 
-    def get_namespace(self) -&gt; str:
+    def get_namespace(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the namespace of this Component.
 
@@ -240,12 +242,12 @@ class Component:
         Returns:
             PackageURL or &#39;PURL&#39; that reflects this Component as `str`.
         &#34;&#34;&#34;
-        return self.to_package_url().to_string()
+        return str(self.to_package_url().to_string())
 
     def get_pypi_url(self) -&gt; str:
         return f&#39;https://pypi.org/project/{self.get_name()}/{self.get_version()}&#39;
 
-    def get_subpath(self) -&gt; str:
+    def get_subpath(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the subpath of this Component.
 
@@ -288,9 +290,9 @@ class Component:
         Returns:
              `True` if this Component has 1 or more vulnerabilities, `False` otherwise.
         &#34;&#34;&#34;
-        return len(self._vulnerabilites) != 0
+        return bool(self.get_vulnerabilities())
 
-    def set_author(self, author: str):
+    def set_author(self, author: str) -&gt; None:
         &#34;&#34;&#34;
         Set the author of this Component.
 
@@ -303,7 +305,7 @@ class Component:
         &#34;&#34;&#34;
         self._author = author
 
-    def set_description(self, description: str):
+    def set_description(self, description: str) -&gt; None:
         &#34;&#34;&#34;
         Set the description of this Component.
 
@@ -316,7 +318,7 @@ class Component:
         &#34;&#34;&#34;
         self._description = description
 
-    def set_license(self, license_str: str):
+    def set_license(self, license_str: str) -&gt; None:
         &#34;&#34;&#34;
         Set the license for this Component.
 
@@ -345,11 +347,14 @@ class Component:
             subpath=self._subpath
         )
 
-    def __eq__(self, other):
-        return other.get_purl() == self.get_purl()
+    def __eq__(self, other: object) -&gt; bool:
+        if isinstance(other, Component):
+            return other.get_purl() == self.get_purl()
+        else:
+            raise NotImplementedError
 
-    def __repr__(self):
-        return &#39;&lt;Component {}={}&gt;&#39;.format(self._name, self._version)</code></pre>
+    def __repr__(self) -&gt; str:
+        return f&#39;&lt;Component {self._name}={self._version}&gt;&#39;</code></pre>
 </details>
 </section>
 <section>
@@ -363,7 +368,7 @@ class Component:
 <dl>
 <dt id="cyclonedx.model.component.Component"><code class="flex name class">
 <span>class <span class="ident">Component</span></span>
-<span>(</span><span>name: str, version: str, namespace: str = None, qualifiers: str = None, subpath: str = None, hashes: List[<a title="cyclonedx.model.HashType" href="index.html#cyclonedx.model.HashType">HashType</a>] = None, author: str = None, description: str = None, license_str: str = None, component_type: <a title="cyclonedx.model.component.ComponentType" href="#cyclonedx.model.component.ComponentType">ComponentType</a> = ComponentType.LIBRARY, package_url_type: str = 'pypi')</span>
+<span>(</span><span>name: str, version: str, namespace: Optional[str] = None, qualifiers: Optional[str] = None, subpath: Optional[str] = None, hashes: Optional[List[<a title="cyclonedx.model.HashType" href="index.html#cyclonedx.model.HashType">HashType</a>]] = None, author: Optional[str] = None, description: Optional[str] = None, license_str: Optional[str] = None, component_type: <a title="cyclonedx.model.component.ComponentType" href="#cyclonedx.model.component.ComponentType">ComponentType</a> = ComponentType.LIBRARY, package_url_type: str = 'pypi')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This is our internal representation of a Component within a Bom.</p>
@@ -374,7 +379,7 @@ class Component:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L46-L314" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L48-L319" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Component:
     &#34;&#34;&#34;
@@ -385,7 +390,7 @@ class Component:
     &#34;&#34;&#34;
 
     @staticmethod
-    def for_file(absolute_file_path: str, path_for_bom: str = None):
+    def for_file(absolute_file_path: str, path_for_bom: Optional[str]) -&gt; &#39;Component&#39;:
         &#34;&#34;&#34;
         Helper method to create a Component that represents the provided local file as a Component.
 
@@ -402,7 +407,6 @@ class Component:
             raise FileExistsError(&#39;Supplied file path \&#39;{}\&#39; does not exist&#39;.format(absolute_file_path))
 
         sha1_hash: str = sha1sum(filename=absolute_file_path)
-
         return Component(
             name=path_for_bom if path_for_bom else absolute_file_path,
             version=&#39;0.0.0-{}&#39;.format(sha1_hash[0:12]),
@@ -413,26 +417,27 @@ class Component:
             package_url_type=&#39;generic&#39;
         )
 
-    def __init__(self, name: str, version: str, namespace: str = None, qualifiers: str = None, subpath: str = None,
-                 hashes: List[HashType] = None, author: str = None, description: str = None, license_str: str = None,
-                 component_type: ComponentType = ComponentType.LIBRARY, package_url_type: str = &#39;pypi&#39;):
-        self._package_url_type = package_url_type
-        self._namespace = namespace
-        self._name = name
-        self._version = version
-        self._type = component_type
-        self._qualifiers = qualifiers
-        self._subpath = subpath
+    def __init__(self, name: str, version: str, namespace: Optional[str] = None, qualifiers: Optional[str] = None,
+                 subpath: Optional[str] = None, hashes: Optional[List[HashType]] = None, author: Optional[str] = None,
+                 description: Optional[str] = None, license_str: Optional[str] = None,
+                 component_type: ComponentType = ComponentType.LIBRARY, package_url_type: str = &#39;pypi&#39;) -&gt; None:
+        self._package_url_type: str = package_url_type
+        self._namespace: Optional[str] = namespace
+        self._name: str = name
+        self._version: str = version
+        self._type: ComponentType = component_type
+        self._qualifiers: Optional[str] = qualifiers
+        self._subpath: Optional[str] = subpath
 
-        self._author: str = author
-        self._description: str = description
-        self._license: str = license_str
+        self._author: Optional[str] = author
+        self._description: Optional[str] = description
+        self._license: Optional[str] = license_str
 
         self._hashes: List[HashType] = hashes if hashes else []
         self._vulnerabilites: List[Vulnerability] = []
         self._external_references: List[ExternalReference] = []
 
-    def add_external_reference(self, reference: ExternalReference):
+    def add_external_reference(self, reference: ExternalReference) -&gt; None:
         &#34;&#34;&#34;
         Add an `ExternalReference` to this `Component`.
 
@@ -442,7 +447,7 @@ class Component:
         &#34;&#34;&#34;
         self._external_references.append(reference)
 
-    def add_hash(self, a_hash: HashType):
+    def add_hash(self, a_hash: HashType) -&gt; None:
         &#34;&#34;&#34;
         Adds a hash that pins/identifies this Component.
 
@@ -452,7 +457,7 @@ class Component:
         &#34;&#34;&#34;
         self._hashes.append(a_hash)
 
-    def add_vulnerability(self, vulnerability: Vulnerability):
+    def add_vulnerability(self, vulnerability: Vulnerability) -&gt; None:
         &#34;&#34;&#34;
         Add a Vulnerability to this Component.
 
@@ -465,21 +470,21 @@ class Component:
         &#34;&#34;&#34;
         self._vulnerabilites.append(vulnerability)
 
-    def get_author(self) -&gt; str:
+    def get_author(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the author of this Component.
 
         Returns:
-            Declared author of this Component as `str`.
+            Declared author of this Component as `str` if set, else `None`.
         &#34;&#34;&#34;
         return self._author
 
-    def get_description(self) -&gt; str:
+    def get_description(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the description of this Component.
 
         Returns:
-            Declared description of this Component as `str`.
+            Declared description of this Component as `str` if set, else `None`.
         &#34;&#34;&#34;
         return self._description
 
@@ -501,12 +506,12 @@ class Component:
         &#34;&#34;&#34;
         return self._hashes
 
-    def get_license(self) -&gt; str:
+    def get_license(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the license of this Component.
 
         Returns:
-            Declared license of this Component as `str`.
+            Declared license of this Component as `str` if set, else `None`.
         &#34;&#34;&#34;
         return self._license
 
@@ -519,7 +524,7 @@ class Component:
         &#34;&#34;&#34;
         return self._name
 
-    def get_namespace(self) -&gt; str:
+    def get_namespace(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the namespace of this Component.
 
@@ -535,12 +540,12 @@ class Component:
         Returns:
             PackageURL or &#39;PURL&#39; that reflects this Component as `str`.
         &#34;&#34;&#34;
-        return self.to_package_url().to_string()
+        return str(self.to_package_url().to_string())
 
     def get_pypi_url(self) -&gt; str:
         return f&#39;https://pypi.org/project/{self.get_name()}/{self.get_version()}&#39;
 
-    def get_subpath(self) -&gt; str:
+    def get_subpath(self) -&gt; Optional[str]:
         &#34;&#34;&#34;
         Get the subpath of this Component.
 
@@ -583,9 +588,9 @@ class Component:
         Returns:
              `True` if this Component has 1 or more vulnerabilities, `False` otherwise.
         &#34;&#34;&#34;
-        return len(self._vulnerabilites) != 0
+        return bool(self.get_vulnerabilities())
 
-    def set_author(self, author: str):
+    def set_author(self, author: str) -&gt; None:
         &#34;&#34;&#34;
         Set the author of this Component.
 
@@ -598,7 +603,7 @@ class Component:
         &#34;&#34;&#34;
         self._author = author
 
-    def set_description(self, description: str):
+    def set_description(self, description: str) -&gt; None:
         &#34;&#34;&#34;
         Set the description of this Component.
 
@@ -611,7 +616,7 @@ class Component:
         &#34;&#34;&#34;
         self._description = description
 
-    def set_license(self, license_str: str):
+    def set_license(self, license_str: str) -&gt; None:
         &#34;&#34;&#34;
         Set the license for this Component.
 
@@ -640,16 +645,19 @@ class Component:
             subpath=self._subpath
         )
 
-    def __eq__(self, other):
-        return other.get_purl() == self.get_purl()
+    def __eq__(self, other: object) -&gt; bool:
+        if isinstance(other, Component):
+            return other.get_purl() == self.get_purl()
+        else:
+            raise NotImplementedError
 
-    def __repr__(self):
-        return &#39;&lt;Component {}={}&gt;&#39;.format(self._name, self._version)</code></pre>
+    def __repr__(self) -&gt; str:
+        return f&#39;&lt;Component {self._name}={self._version}&gt;&#39;</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="cyclonedx.model.component.Component.for_file"><code class="name flex">
-<span>def <span class="ident">for_file</span></span>(<span>absolute_file_path: str, path_for_bom: str = None)</span>
+<span>def <span class="ident">for_file</span></span>(<span>absolute_file_path: str, path_for_bom: Optional[str]) ‑> <a title="cyclonedx.model.component.Component" href="#cyclonedx.model.component.Component">Component</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper method to create a Component that represents the provided local file as a Component.</p>
@@ -663,10 +671,10 @@ Optionally, if supplied this is the path that will be used to identify the file 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L54-L81" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L56-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@staticmethod
-def for_file(absolute_file_path: str, path_for_bom: str = None):
+def for_file(absolute_file_path: str, path_for_bom: Optional[str]) -&gt; &#39;Component&#39;:
     &#34;&#34;&#34;
     Helper method to create a Component that represents the provided local file as a Component.
 
@@ -683,7 +691,6 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
         raise FileExistsError(&#39;Supplied file path \&#39;{}\&#39; does not exist&#39;.format(absolute_file_path))
 
     sha1_hash: str = sha1sum(filename=absolute_file_path)
-
     return Component(
         name=path_for_bom if path_for_bom else absolute_file_path,
         version=&#39;0.0.0-{}&#39;.format(sha1_hash[0:12]),
@@ -699,7 +706,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <h3>Methods</h3>
 <dl>
 <dt id="cyclonedx.model.component.Component.add_external_reference"><code class="name flex">
-<span>def <span class="ident">add_external_reference</span></span>(<span>self, reference: <a title="cyclonedx.model.ExternalReference" href="index.html#cyclonedx.model.ExternalReference">ExternalReference</a>)</span>
+<span>def <span class="ident">add_external_reference</span></span>(<span>self, reference: <a title="cyclonedx.model.ExternalReference" href="index.html#cyclonedx.model.ExternalReference">ExternalReference</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add an <code>ExternalReference</code> to this <code><a title="cyclonedx.model.component.Component" href="#cyclonedx.model.component.Component">Component</a></code>.</p>
@@ -709,9 +716,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L102-L110" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L104-L112" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def add_external_reference(self, reference: ExternalReference):
+<pre><code class="python">def add_external_reference(self, reference: ExternalReference) -&gt; None:
     &#34;&#34;&#34;
     Add an `ExternalReference` to this `Component`.
 
@@ -723,7 +730,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.add_hash"><code class="name flex">
-<span>def <span class="ident">add_hash</span></span>(<span>self, a_hash: <a title="cyclonedx.model.HashType" href="index.html#cyclonedx.model.HashType">HashType</a>)</span>
+<span>def <span class="ident">add_hash</span></span>(<span>self, a_hash: <a title="cyclonedx.model.HashType" href="index.html#cyclonedx.model.HashType">HashType</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a hash that pins/identifies this Component.</p>
@@ -733,9 +740,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L112-L120" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L114-L122" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def add_hash(self, a_hash: HashType):
+<pre><code class="python">def add_hash(self, a_hash: HashType) -&gt; None:
     &#34;&#34;&#34;
     Adds a hash that pins/identifies this Component.
 
@@ -747,7 +754,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.add_vulnerability"><code class="name flex">
-<span>def <span class="ident">add_vulnerability</span></span>(<span>self, vulnerability: <a title="cyclonedx.model.vulnerability.Vulnerability" href="vulnerability.html#cyclonedx.model.vulnerability.Vulnerability">Vulnerability</a>)</span>
+<span>def <span class="ident">add_vulnerability</span></span>(<span>self, vulnerability: <a title="cyclonedx.model.vulnerability.Vulnerability" href="vulnerability.html#cyclonedx.model.vulnerability.Vulnerability">Vulnerability</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add a Vulnerability to this Component.</p>
@@ -759,9 +766,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L122-L133" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L124-L135" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def add_vulnerability(self, vulnerability: Vulnerability):
+<pre><code class="python">def add_vulnerability(self, vulnerability: Vulnerability) -&gt; None:
     &#34;&#34;&#34;
     Add a Vulnerability to this Component.
 
@@ -776,45 +783,45 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.get_author"><code class="name flex">
-<span>def <span class="ident">get_author</span></span>(<span>self) ‑> str</span>
+<span>def <span class="ident">get_author</span></span>(<span>self) ‑> Optional[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the author of this Component.</p>
 <h2 id="returns">Returns</h2>
-<p>Declared author of this Component as <code>str</code>.</p></div>
+<p>Declared author of this Component as <code>str</code> if set, else <code>None</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L135-L142" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L137-L144" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_author(self) -&gt; str:
+<pre><code class="python">def get_author(self) -&gt; Optional[str]:
     &#34;&#34;&#34;
     Get the author of this Component.
 
     Returns:
-        Declared author of this Component as `str`.
+        Declared author of this Component as `str` if set, else `None`.
     &#34;&#34;&#34;
     return self._author</code></pre>
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.get_description"><code class="name flex">
-<span>def <span class="ident">get_description</span></span>(<span>self) ‑> str</span>
+<span>def <span class="ident">get_description</span></span>(<span>self) ‑> Optional[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the description of this Component.</p>
 <h2 id="returns">Returns</h2>
-<p>Declared description of this Component as <code>str</code>.</p></div>
+<p>Declared description of this Component as <code>str</code> if set, else <code>None</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L144-L151" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L146-L153" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_description(self) -&gt; str:
+<pre><code class="python">def get_description(self) -&gt; Optional[str]:
     &#34;&#34;&#34;
     Get the description of this Component.
 
     Returns:
-        Declared description of this Component as `str`.
+        Declared description of this Component as `str` if set, else `None`.
     &#34;&#34;&#34;
     return self._description</code></pre>
 </details>
@@ -829,7 +836,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L153-L160" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L155-L162" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_external_references(self) -&gt; List[ExternalReference]:
     &#34;&#34;&#34;
@@ -851,7 +858,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L162-L169" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L164-L171" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_hashes(self) -&gt; List[HashType]:
     &#34;&#34;&#34;
@@ -864,23 +871,23 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.get_license"><code class="name flex">
-<span>def <span class="ident">get_license</span></span>(<span>self) ‑> str</span>
+<span>def <span class="ident">get_license</span></span>(<span>self) ‑> Optional[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the license of this Component.</p>
 <h2 id="returns">Returns</h2>
-<p>Declared license of this Component as <code>str</code>.</p></div>
+<p>Declared license of this Component as <code>str</code> if set, else <code>None</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L171-L178" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L173-L180" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_license(self) -&gt; str:
+<pre><code class="python">def get_license(self) -&gt; Optional[str]:
     &#34;&#34;&#34;
     Get the license of this Component.
 
     Returns:
-        Declared license of this Component as `str`.
+        Declared license of this Component as `str` if set, else `None`.
     &#34;&#34;&#34;
     return self._license</code></pre>
 </details>
@@ -895,7 +902,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L180-L187" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L182-L189" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_name(self) -&gt; str:
     &#34;&#34;&#34;
@@ -908,7 +915,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.get_namespace"><code class="name flex">
-<span>def <span class="ident">get_namespace</span></span>(<span>self) ‑> str</span>
+<span>def <span class="ident">get_namespace</span></span>(<span>self) ‑> Optional[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the namespace of this Component.</p>
@@ -917,9 +924,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L189-L196" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L191-L198" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_namespace(self) -&gt; str:
+<pre><code class="python">def get_namespace(self) -&gt; Optional[str]:
     &#34;&#34;&#34;
     Get the namespace of this Component.
 
@@ -939,7 +946,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L198-L205" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L200-L207" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_purl(self) -&gt; str:
     &#34;&#34;&#34;
@@ -948,7 +955,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
     Returns:
         PackageURL or &#39;PURL&#39; that reflects this Component as `str`.
     &#34;&#34;&#34;
-    return self.to_package_url().to_string()</code></pre>
+    return str(self.to_package_url().to_string())</code></pre>
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.get_pypi_url"><code class="name flex">
@@ -959,14 +966,14 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L207-L208" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L209-L210" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_pypi_url(self) -&gt; str:
     return f&#39;https://pypi.org/project/{self.get_name()}/{self.get_version()}&#39;</code></pre>
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.get_subpath"><code class="name flex">
-<span>def <span class="ident">get_subpath</span></span>(<span>self) ‑> str</span>
+<span>def <span class="ident">get_subpath</span></span>(<span>self) ‑> Optional[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the subpath of this Component.</p>
@@ -975,9 +982,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L210-L217" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L212-L219" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_subpath(self) -&gt; str:
+<pre><code class="python">def get_subpath(self) -&gt; Optional[str]:
     &#34;&#34;&#34;
     Get the subpath of this Component.
 
@@ -997,7 +1004,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L219-L226" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L221-L228" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_type(self) -&gt; ComponentType:
     &#34;&#34;&#34;
@@ -1019,7 +1026,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L228-L235" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L230-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_version(self) -&gt; str:
     &#34;&#34;&#34;
@@ -1041,7 +1048,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L237-L244" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L239-L246" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_vulnerabilities(self) -&gt; List[Vulnerability]:
     &#34;&#34;&#34;
@@ -1063,7 +1070,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L246-L253" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L248-L255" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def has_vulnerabilities(self) -&gt; bool:
     &#34;&#34;&#34;
@@ -1072,11 +1079,11 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
     Returns:
          `True` if this Component has 1 or more vulnerabilities, `False` otherwise.
     &#34;&#34;&#34;
-    return len(self._vulnerabilites) != 0</code></pre>
+    return bool(self.get_vulnerabilities())</code></pre>
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.set_author"><code class="name flex">
-<span>def <span class="ident">set_author</span></span>(<span>self, author: str)</span>
+<span>def <span class="ident">set_author</span></span>(<span>self, author: str) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set the author of this Component.</p>
@@ -1088,9 +1095,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L255-L266" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L257-L268" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def set_author(self, author: str):
+<pre><code class="python">def set_author(self, author: str) -&gt; None:
     &#34;&#34;&#34;
     Set the author of this Component.
 
@@ -1105,7 +1112,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.set_description"><code class="name flex">
-<span>def <span class="ident">set_description</span></span>(<span>self, description: str)</span>
+<span>def <span class="ident">set_description</span></span>(<span>self, description: str) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set the description of this Component.</p>
@@ -1117,9 +1124,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L268-L279" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L270-L281" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def set_description(self, description: str):
+<pre><code class="python">def set_description(self, description: str) -&gt; None:
     &#34;&#34;&#34;
     Set the description of this Component.
 
@@ -1134,7 +1141,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 </details>
 </dd>
 <dt id="cyclonedx.model.component.Component.set_license"><code class="name flex">
-<span>def <span class="ident">set_license</span></span>(<span>self, license_str: str)</span>
+<span>def <span class="ident">set_license</span></span>(<span>self, license_str: str) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set the license for this Component.</p>
@@ -1146,9 +1153,9 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L281-L292" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L283-L294" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def set_license(self, license_str: str):
+<pre><code class="python">def set_license(self, license_str: str) -&gt; None:
     &#34;&#34;&#34;
     Set the license for this Component.
 
@@ -1172,7 +1179,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L294-L308" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L296-L310" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def to_package_url(self) -&gt; PackageURL:
     &#34;&#34;&#34;
@@ -1206,7 +1213,7 @@ def for_file(absolute_file_path: str, path_for_bom: str = None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/model/component.py#L29-L43" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/model/component.py#L31-L45" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class ComponentType(Enum):
     &#34;&#34;&#34;

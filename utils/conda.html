@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/utils/conda.py#L1-L122" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/utils/conda.py#L1-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -57,7 +57,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 import json
 import sys
 from json import JSONDecodeError
-from typing import Union
+from typing import Optional
 
 if sys.version_info &gt;= (3, 8, 0):
     from typing import TypedDict
@@ -79,26 +79,23 @@ class CondaPackage(TypedDict):
     name: str
     platform: str
     version: str
-    md5_hash: str
+    md5_hash: Optional[str]
 
 
-def parse_conda_json_to_conda_package(conda_json_str: str) -&gt; Union[CondaPackage, None]:
+def parse_conda_json_to_conda_package(conda_json_str: str) -&gt; Optional[CondaPackage]:
     try:
         package_data = json.loads(conda_json_str)
-    except JSONDecodeError:
-        print(f&#39;Failed to decode JSON: {conda_json_str}&#39;)
-        raise ValueError(f&#39;Invalid JSON supplied - cannot be parsed: {conda_json_str}&#39;)
+    except JSONDecodeError as e:
+        raise ValueError(f&#39;Invalid JSON supplied - cannot be parsed: {conda_json_str}&#39;) from e
 
-    if &#39;md5_hash&#39; not in package_data.keys():
-        package_data[&#39;md5_hash&#39;] = None
+    if not isinstance(package_data, dict):
+        return None
 
-    if isinstance(package_data, dict):
-        return CondaPackage(**package_data)
-
-    return None
+    package_data.setdefault(&#39;md5_hash&#39;, None)
+    return CondaPackage(package_data)  # type: ignore # @FIXME write proper type safe dict at this point
 
 
-def parse_conda_list_str_to_conda_package(conda_list_str: str) -&gt; Union[CondaPackage, None]:
+def parse_conda_list_str_to_conda_package(conda_list_str: str) -&gt; Optional[CondaPackage]:
     &#34;&#34;&#34;
     Helper method for parsing a line of output from `conda list --explicit` into our internal `CondaPackage` object.
 
@@ -117,7 +114,7 @@ def parse_conda_list_str_to_conda_package(conda_list_str: str) -&gt; Union[Conda
         return None
 
     # Remove any hash
-    package_hash: str = None
+    package_hash = None
     if &#39;#&#39; in line:
         hash_parts = line.split(&#39;#&#39;)
         if len(hash_parts) &gt; 1:
@@ -145,13 +142,13 @@ def parse_conda_list_str_to_conda_package(conda_list_str: str) -&gt; Union[Conda
             else:
                 raise ValueError(f&#39;Unexpected build version string for Conda Package: {conda_list_str}&#39;)
         else:
-            build_string = None
+            build_string = &#39;&#39;
             build_number = int(build_number_with_opt_string)
 
         build_version = package_nvbs_parts.pop()
         package_name = &#39;-&#39;.join(package_nvbs_parts)
     except IndexError as e:
-        raise ValueError(f&#39;Error parsing {package_nvbs_parts} from {conda_list_str} IndexError: {str(e)}&#39;)
+        raise ValueError(f&#39;Error parsing {package_nvbs_parts} from {conda_list_str}&#39;) from e
 
     return CondaPackage(
         base_url=package_url.geturl(), build_number=build_number, build_string=build_string,
@@ -175,22 +172,19 @@ def parse_conda_list_str_to_conda_package(conda_list_str: str) -&gt; Union[Conda
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/utils/conda.py#L47-L60" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/utils/conda.py#L47-L57" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def parse_conda_json_to_conda_package(conda_json_str: str) -&gt; Union[CondaPackage, None]:
+<pre><code class="python">def parse_conda_json_to_conda_package(conda_json_str: str) -&gt; Optional[CondaPackage]:
     try:
         package_data = json.loads(conda_json_str)
-    except JSONDecodeError:
-        print(f&#39;Failed to decode JSON: {conda_json_str}&#39;)
-        raise ValueError(f&#39;Invalid JSON supplied - cannot be parsed: {conda_json_str}&#39;)
+    except JSONDecodeError as e:
+        raise ValueError(f&#39;Invalid JSON supplied - cannot be parsed: {conda_json_str}&#39;) from e
 
-    if &#39;md5_hash&#39; not in package_data.keys():
-        package_data[&#39;md5_hash&#39;] = None
+    if not isinstance(package_data, dict):
+        return None
 
-    if isinstance(package_data, dict):
-        return CondaPackage(**package_data)
-
-    return None</code></pre>
+    package_data.setdefault(&#39;md5_hash&#39;, None)
+    return CondaPackage(package_data)  # type: ignore # @FIXME write proper type safe dict at this point</code></pre>
 </details>
 </dd>
 <dt id="cyclonedx.utils.conda.parse_conda_list_str_to_conda_package"><code class="name flex">
@@ -206,9 +200,9 @@ Line of output from <code>conda list --explicit</code></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/utils/conda.py#L63-L122" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/utils/conda.py#L60-L119" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def parse_conda_list_str_to_conda_package(conda_list_str: str) -&gt; Union[CondaPackage, None]:
+<pre><code class="python">def parse_conda_list_str_to_conda_package(conda_list_str: str) -&gt; Optional[CondaPackage]:
     &#34;&#34;&#34;
     Helper method for parsing a line of output from `conda list --explicit` into our internal `CondaPackage` object.
 
@@ -227,7 +221,7 @@ Line of output from <code>conda list --explicit</code></p>
         return None
 
     # Remove any hash
-    package_hash: str = None
+    package_hash = None
     if &#39;#&#39; in line:
         hash_parts = line.split(&#39;#&#39;)
         if len(hash_parts) &gt; 1:
@@ -255,13 +249,13 @@ Line of output from <code>conda list --explicit</code></p>
             else:
                 raise ValueError(f&#39;Unexpected build version string for Conda Package: {conda_list_str}&#39;)
         else:
-            build_string = None
+            build_string = &#39;&#39;
             build_number = int(build_number_with_opt_string)
 
         build_version = package_nvbs_parts.pop()
         package_name = &#39;-&#39;.join(package_nvbs_parts)
     except IndexError as e:
-        raise ValueError(f&#39;Error parsing {package_nvbs_parts} from {conda_list_str} IndexError: {str(e)}&#39;)
+        raise ValueError(f&#39;Error parsing {package_nvbs_parts} from {conda_list_str}&#39;) from e
 
     return CondaPackage(
         base_url=package_url.geturl(), build_number=build_number, build_string=build_string,
@@ -284,7 +278,7 @@ Line of output from <code>conda list --explicit</code></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/utils/conda.py#L32-L44" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/utils/conda.py#L32-L44" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class CondaPackage(TypedDict):
     &#34;&#34;&#34;
@@ -298,7 +292,7 @@ Line of output from <code>conda list --explicit</code></p>
     name: str
     platform: str
     version: str
-    md5_hash: str</code></pre>
+    md5_hash: Optional[str]</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -326,7 +320,7 @@ Line of output from <code>conda list --explicit</code></p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="cyclonedx.utils.conda.CondaPackage.md5_hash"><code class="name">var <span class="ident">md5_hash</span> : str</code></dt>
+<dt id="cyclonedx.utils.conda.CondaPackage.md5_hash"><code class="name">var <span class="ident">md5_hash</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

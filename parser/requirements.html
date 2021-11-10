@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/requirements.py#L1-L61" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/requirements.py#L1-L61" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -55,7 +55,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) OWASP Foundation. All Rights Reserved.
 
-import pkg_resources
+from pkg_resources import parse_requirements as parse_requirements
 
 from . import BaseParser, ParserWarning
 from ..model.component import Component
@@ -63,10 +63,10 @@ from ..model.component import Component
 
 class RequirementsParser(BaseParser):
 
-    def __init__(self, requirements_content: str):
+    def __init__(self, requirements_content: str) -&gt; None:
         super().__init__()
 
-        requirements = pkg_resources.parse_requirements(requirements_content)
+        requirements = parse_requirements(requirements_content)
         for requirement in requirements:
             &#34;&#34;&#34;
             @todo
@@ -93,7 +93,7 @@ class RequirementsParser(BaseParser):
 
 class RequirementsFileParser(RequirementsParser):
 
-    def __init__(self, requirements_file: str):
+    def __init__(self, requirements_file: str) -&gt; None:
         with open(requirements_file) as r:
             super(RequirementsFileParser, self).__init__(requirements_content=r.read())
             r.close()</code></pre>
@@ -114,15 +114,16 @@ class RequirementsFileParser(RequirementsParser):
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/requirements.py#L56-L61" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/requirements.py#L56-L61" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RequirementsFileParser(RequirementsParser):
 
-    def __init__(self, requirements_file: str):
+    def __init__(self, requirements_file: str) -&gt; None:
         with open(requirements_file) as r:
             super(RequirementsFileParser, self).__init__(requirements_content=r.read())
             r.close()</code></pre>
@@ -140,18 +141,19 @@ inheritance.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+inheritance.</p>
+<p>:rtype: object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/parser/requirements.py#L26-L53" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/parser/requirements.py#L26-L53" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RequirementsParser(BaseParser):
 
-    def __init__(self, requirements_content: str):
+    def __init__(self, requirements_content: str) -&gt; None:
         super().__init__()
 
-        requirements = pkg_resources.parse_requirements(requirements_content)
+        requirements = parse_requirements(requirements_content)
         for requirement in requirements:
             &#34;&#34;&#34;
             @todo

@@ -37,7 +37,7 @@ and according to different versions of the CycloneDX schema standard.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L1-L96" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L1-L97" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -64,6 +64,7 @@ import importlib
 import os
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import cast, Optional
 
 from ..model.bom import Bom
 
@@ -86,20 +87,20 @@ DEFAULT_SCHEMA_VERSION = SchemaVersion.V1_3
 class BaseOutput(ABC):
     _bom: Bom
 
-    def __init__(self, bom: Bom = None):
+    def __init__(self, bom: Bom) -&gt; None:
         self._bom = bom
 
     def get_bom(self) -&gt; Bom:
         return self._bom
 
-    def set_bom(self, bom: Bom):
+    def set_bom(self, bom: Bom) -&gt; None:
         self._bom = bom
 
     @abstractmethod
     def output_as_string(self) -&gt; str:
         pass
 
-    def output_to_file(self, filename: str, allow_overwrite: bool = False):
+    def output_to_file(self, filename: str, allow_overwrite: bool = False) -&gt; None:
         # Check directory writable
         output_filename = os.path.realpath(filename)
         output_directory = os.path.dirname(output_filename)
@@ -116,7 +117,7 @@ class BaseOutput(ABC):
         f_out.close()
 
 
-def get_instance(bom: Bom = None, output_format: OutputFormat = OutputFormat.XML,
+def get_instance(bom: Optional[Bom] = None, output_format: OutputFormat = OutputFormat.XML,
                  schema_version: SchemaVersion = DEFAULT_SCHEMA_VERSION) -&gt; BaseOutput:
     &#34;&#34;&#34;
     Helper method to quickly get the correct output class/formatter.
@@ -134,7 +135,7 @@ def get_instance(bom: Bom = None, output_format: OutputFormat = OutputFormat.XML
     except (ImportError, AttributeError):
         raise ValueError(f&#34;Unknown format {output_format.value.lower()!r}&#34;) from None
 
-    return output_klass(bom=bom)</code></pre>
+    return cast(BaseOutput, output_klass(bom=bom))</code></pre>
 </details>
 </section>
 <section>
@@ -160,7 +161,7 @@ def get_instance(bom: Bom = None, output_format: OutputFormat = OutputFormat.XML
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="cyclonedx.output.get_instance"><code class="name flex">
-<span>def <span class="ident">get_instance</span></span>(<span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a> = None, output_format: <a title="cyclonedx.output.OutputFormat" href="#cyclonedx.output.OutputFormat">OutputFormat</a> = OutputFormat.XML, schema_version: <a title="cyclonedx.output.SchemaVersion" href="#cyclonedx.output.SchemaVersion">SchemaVersion</a> = SchemaVersion.V1_3) ‑> <a title="cyclonedx.output.BaseOutput" href="#cyclonedx.output.BaseOutput">BaseOutput</a></span>
+<span>def <span class="ident">get_instance</span></span>(<span>bom: Optional[<a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>] = None, output_format: <a title="cyclonedx.output.OutputFormat" href="#cyclonedx.output.OutputFormat">OutputFormat</a> = OutputFormat.XML, schema_version: <a title="cyclonedx.output.SchemaVersion" href="#cyclonedx.output.SchemaVersion">SchemaVersion</a> = SchemaVersion.V1_3) ‑> <a title="cyclonedx.output.BaseOutput" href="#cyclonedx.output.BaseOutput">BaseOutput</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper method to quickly get the correct output class/formatter.</p>
@@ -172,9 +173,9 @@ def get_instance(bom: Bom = None, output_format: OutputFormat = OutputFormat.XML
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L78-L96" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L79-L97" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_instance(bom: Bom = None, output_format: OutputFormat = OutputFormat.XML,
+<pre><code class="python">def get_instance(bom: Optional[Bom] = None, output_format: OutputFormat = OutputFormat.XML,
                  schema_version: SchemaVersion = DEFAULT_SCHEMA_VERSION) -&gt; BaseOutput:
     &#34;&#34;&#34;
     Helper method to quickly get the correct output class/formatter.
@@ -192,7 +193,7 @@ def get_instance(bom: Bom = None, output_format: OutputFormat = OutputFormat.XML
     except (ImportError, AttributeError):
         raise ValueError(f&#34;Unknown format {output_format.value.lower()!r}&#34;) from None
 
-    return output_klass(bom=bom)</code></pre>
+    return cast(BaseOutput, output_klass(bom=bom))</code></pre>
 </details>
 </dd>
 </dl>
@@ -202,7 +203,7 @@ def get_instance(bom: Bom = None, output_format: OutputFormat = OutputFormat.XML
 <dl>
 <dt id="cyclonedx.output.BaseOutput"><code class="flex name class">
 <span>class <span class="ident">BaseOutput</span></span>
-<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a> = None)</span>
+<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -210,25 +211,25 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L45-L75" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L46-L76" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class BaseOutput(ABC):
     _bom: Bom
 
-    def __init__(self, bom: Bom = None):
+    def __init__(self, bom: Bom) -&gt; None:
         self._bom = bom
 
     def get_bom(self) -&gt; Bom:
         return self._bom
 
-    def set_bom(self, bom: Bom):
+    def set_bom(self, bom: Bom) -&gt; None:
         self._bom = bom
 
     @abstractmethod
     def output_as_string(self) -&gt; str:
         pass
 
-    def output_to_file(self, filename: str, allow_overwrite: bool = False):
+    def output_to_file(self, filename: str, allow_overwrite: bool = False) -&gt; None:
         # Check directory writable
         output_filename = os.path.realpath(filename)
         output_directory = os.path.dirname(output_filename)
@@ -263,7 +264,7 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L51-L52" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L52-L53" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_bom(self) -&gt; Bom:
     return self._bom</code></pre>
@@ -277,7 +278,7 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L57-L59" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L58-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@abstractmethod
 def output_as_string(self) -&gt; str:
@@ -285,16 +286,16 @@ def output_as_string(self) -&gt; str:
 </details>
 </dd>
 <dt id="cyclonedx.output.BaseOutput.output_to_file"><code class="name flex">
-<span>def <span class="ident">output_to_file</span></span>(<span>self, filename: str, allow_overwrite: bool = False)</span>
+<span>def <span class="ident">output_to_file</span></span>(<span>self, filename: str, allow_overwrite: bool = False) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L61-L75" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L62-L76" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def output_to_file(self, filename: str, allow_overwrite: bool = False):
+<pre><code class="python">def output_to_file(self, filename: str, allow_overwrite: bool = False) -&gt; None:
     # Check directory writable
     output_filename = os.path.realpath(filename)
     output_directory = os.path.dirname(output_filename)
@@ -312,16 +313,16 @@ def output_as_string(self) -&gt; str:
 </details>
 </dd>
 <dt id="cyclonedx.output.BaseOutput.set_bom"><code class="name flex">
-<span>def <span class="ident">set_bom</span></span>(<span>self, bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>)</span>
+<span>def <span class="ident">set_bom</span></span>(<span>self, bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L54-L55" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L55-L56" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def set_bom(self, bom: Bom):
+<pre><code class="python">def set_bom(self, bom: Bom) -&gt; None:
     self._bom = bom</code></pre>
 </details>
 </dd>
@@ -336,7 +337,7 @@ def output_as_string(self) -&gt; str:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L30-L32" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L31-L33" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class OutputFormat(Enum):
     JSON: str = &#39;Json&#39;
@@ -367,7 +368,7 @@ def output_as_string(self) -&gt; str:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/__init__.py#L35-L39" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/__init__.py#L36-L40" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SchemaVersion(Enum):
     V1_0: str = &#39;V1Dot0&#39;

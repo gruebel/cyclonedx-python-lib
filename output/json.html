@@ -34,7 +34,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/json.py#L1-L146" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/json.py#L1-L150" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -56,6 +56,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 # Copyright (c) OWASP Foundation. All Rights Reserved.
 
 import json
+from typing import Union
 
 from . import BaseOutput
 from .schema import BaseSchemaVersion, SchemaVersion1Dot0, SchemaVersion1Dot1, SchemaVersion1Dot2, SchemaVersion1Dot3
@@ -67,7 +68,7 @@ class Json(BaseOutput, BaseSchemaVersion):
     def output_as_string(self) -&gt; str:
         return json.dumps(self._get_json())
 
-    def _get_json(self) -&gt; dict:
+    def _get_json(self) -&gt; object:
         components = list(map(self._get_component_as_dict, self.get_bom().get_components()))
 
         response = {
@@ -83,8 +84,9 @@ class Json(BaseOutput, BaseSchemaVersion):
 
         return response
 
-    def _get_component_as_dict(self, component: Component) -&gt; dict:
-        c = {
+    def _get_component_as_dict(self, component: Component) -&gt; object:
+        c: dict[str, Union[str, list[dict[str, str]], list[dict[str, dict[str, str]]], list[
+            dict[str, Union[str, list[dict[str, str]]]]]]] = {
             &#34;type&#34;: component.get_type().value,
             &#34;name&#34;: component.get_name(),
             &#34;version&#34;: component.get_version(),
@@ -92,10 +94,10 @@ class Json(BaseOutput, BaseSchemaVersion):
         }
 
         if component.get_namespace():
-            c[&#39;group&#39;] = component.get_namespace()
+            c[&#39;group&#39;] = str(component.get_namespace())
 
         if component.get_hashes():
-            hashes = []
+            hashes: list[dict[str, str]] = []
             for component_hash in component.get_hashes():
                 hashes.append({
                     &#34;alg&#34;: component_hash.get_algorithm().value,
@@ -104,30 +106,31 @@ class Json(BaseOutput, BaseSchemaVersion):
             c[&#39;hashes&#39;] = hashes
 
         if component.get_license():
-            c[&#39;licenses&#39;] = [
+            licenses: list[dict[str, dict[str, str]]] = [
                 {
                     &#34;license&#34;: {
-                        &#34;name&#34;: component.get_license()
+                        &#34;name&#34;: str(component.get_license())
                     }
                 }
             ]
+            c[&#39;licenses&#39;] = licenses
 
         if self.component_supports_author() and component.get_author():
-            c[&#39;author&#39;] = component.get_author()
+            c[&#39;author&#39;] = str(component.get_author())
 
         if self.component_supports_external_references() and component.get_external_references():
-            c[&#39;externalReferences&#39;] = []
+            ext_references: list[dict[str, Union[str, list[dict[str, str]]]]] = []
             for ext_ref in component.get_external_references():
-                ref = {
+                ref: dict[str, Union[str, list[dict[str, str]]]] = {
                     &#34;type&#34;: ext_ref.get_reference_type().value,
                     &#34;url&#34;: ext_ref.get_url()
                 }
 
                 if ext_ref.get_comment():
-                    ref[&#39;comment&#39;] = ext_ref.get_comment()
+                    ref[&#39;comment&#39;] = str(ext_ref.get_comment())
 
                 if ext_ref.get_hashes():
-                    ref_hashes = []
+                    ref_hashes: list[dict[str, str]] = []
                     for ref_hash in ext_ref.get_hashes():
                         ref_hashes.append({
                             &#34;alg&#34;: ref_hash.get_algorithm().value,
@@ -135,35 +138,36 @@ class Json(BaseOutput, BaseSchemaVersion):
                         })
                     ref[&#39;hashes&#39;] = ref_hashes
 
-                c[&#39;externalReferences&#39;].append(ref)
+                ext_references.append(ref)
+            c[&#39;externalReferences&#39;] = ext_references
 
         return c
 
-    def _get_metadata_as_dict(self) -&gt; dict:
+    def _get_metadata_as_dict(self) -&gt; object:
         bom_metadata = self.get_bom().get_metadata()
-        metadata = {
+        metadata: dict[str, Union[str, list[dict[str, Union[str, list[dict[str, str]]]]]]] = {
             &#34;timestamp&#34;: bom_metadata.get_timestamp().isoformat()
         }
 
-        if self.bom_metadata_supports_tools() and len(bom_metadata.get_tools()) &gt; 0:
-            metadata[&#39;tools&#39;] = []
+        if self.bom_metadata_supports_tools():
+            tools: list[dict[str, Union[str, list[dict[str, str]]]]] = []
             for tool in bom_metadata.get_tools():
-                tool_dict = {
+                tool_dict: dict[str, Union[str, list[dict[str, str]]]] = {
                     &#34;vendor&#34;: tool.get_vendor(),
                     &#34;name&#34;: tool.get_name(),
                     &#34;version&#34;: tool.get_version()
                 }
 
                 if len(tool.get_hashes()) &gt; 0:
-                    hashes = []
+                    hashes: list[dict[str, str]] = []
                     for tool_hash in tool.get_hashes():
                         hashes.append({
                             &#34;alg&#34;: tool_hash.get_algorithm().value,
                             &#34;content&#34;: tool_hash.get_hash_value()
                         })
                     tool_dict[&#39;hashes&#39;] = hashes
-
-                metadata[&#39;tools&#39;].append(tool_dict)
+                tools.append(tool_dict)
+            metadata[&#39;tools&#39;] = tools
 
         return metadata
 
@@ -195,7 +199,7 @@ class JsonV1Dot3(Json, SchemaVersion1Dot3):
 <dl>
 <dt id="cyclonedx.output.json.Json"><code class="flex name class">
 <span>class <span class="ident">Json</span></span>
-<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a> = None)</span>
+<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -203,14 +207,14 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/json.py#L27-L130" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/json.py#L28-L134" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Json(BaseOutput, BaseSchemaVersion):
 
     def output_as_string(self) -&gt; str:
         return json.dumps(self._get_json())
 
-    def _get_json(self) -&gt; dict:
+    def _get_json(self) -&gt; object:
         components = list(map(self._get_component_as_dict, self.get_bom().get_components()))
 
         response = {
@@ -226,8 +230,9 @@ inheritance.</p></div>
 
         return response
 
-    def _get_component_as_dict(self, component: Component) -&gt; dict:
-        c = {
+    def _get_component_as_dict(self, component: Component) -&gt; object:
+        c: dict[str, Union[str, list[dict[str, str]], list[dict[str, dict[str, str]]], list[
+            dict[str, Union[str, list[dict[str, str]]]]]]] = {
             &#34;type&#34;: component.get_type().value,
             &#34;name&#34;: component.get_name(),
             &#34;version&#34;: component.get_version(),
@@ -235,10 +240,10 @@ inheritance.</p></div>
         }
 
         if component.get_namespace():
-            c[&#39;group&#39;] = component.get_namespace()
+            c[&#39;group&#39;] = str(component.get_namespace())
 
         if component.get_hashes():
-            hashes = []
+            hashes: list[dict[str, str]] = []
             for component_hash in component.get_hashes():
                 hashes.append({
                     &#34;alg&#34;: component_hash.get_algorithm().value,
@@ -247,30 +252,31 @@ inheritance.</p></div>
             c[&#39;hashes&#39;] = hashes
 
         if component.get_license():
-            c[&#39;licenses&#39;] = [
+            licenses: list[dict[str, dict[str, str]]] = [
                 {
                     &#34;license&#34;: {
-                        &#34;name&#34;: component.get_license()
+                        &#34;name&#34;: str(component.get_license())
                     }
                 }
             ]
+            c[&#39;licenses&#39;] = licenses
 
         if self.component_supports_author() and component.get_author():
-            c[&#39;author&#39;] = component.get_author()
+            c[&#39;author&#39;] = str(component.get_author())
 
         if self.component_supports_external_references() and component.get_external_references():
-            c[&#39;externalReferences&#39;] = []
+            ext_references: list[dict[str, Union[str, list[dict[str, str]]]]] = []
             for ext_ref in component.get_external_references():
-                ref = {
+                ref: dict[str, Union[str, list[dict[str, str]]]] = {
                     &#34;type&#34;: ext_ref.get_reference_type().value,
                     &#34;url&#34;: ext_ref.get_url()
                 }
 
                 if ext_ref.get_comment():
-                    ref[&#39;comment&#39;] = ext_ref.get_comment()
+                    ref[&#39;comment&#39;] = str(ext_ref.get_comment())
 
                 if ext_ref.get_hashes():
-                    ref_hashes = []
+                    ref_hashes: list[dict[str, str]] = []
                     for ref_hash in ext_ref.get_hashes():
                         ref_hashes.append({
                             &#34;alg&#34;: ref_hash.get_algorithm().value,
@@ -278,35 +284,36 @@ inheritance.</p></div>
                         })
                     ref[&#39;hashes&#39;] = ref_hashes
 
-                c[&#39;externalReferences&#39;].append(ref)
+                ext_references.append(ref)
+            c[&#39;externalReferences&#39;] = ext_references
 
         return c
 
-    def _get_metadata_as_dict(self) -&gt; dict:
+    def _get_metadata_as_dict(self) -&gt; object:
         bom_metadata = self.get_bom().get_metadata()
-        metadata = {
+        metadata: dict[str, Union[str, list[dict[str, Union[str, list[dict[str, str]]]]]]] = {
             &#34;timestamp&#34;: bom_metadata.get_timestamp().isoformat()
         }
 
-        if self.bom_metadata_supports_tools() and len(bom_metadata.get_tools()) &gt; 0:
-            metadata[&#39;tools&#39;] = []
+        if self.bom_metadata_supports_tools():
+            tools: list[dict[str, Union[str, list[dict[str, str]]]]] = []
             for tool in bom_metadata.get_tools():
-                tool_dict = {
+                tool_dict: dict[str, Union[str, list[dict[str, str]]]] = {
                     &#34;vendor&#34;: tool.get_vendor(),
                     &#34;name&#34;: tool.get_name(),
                     &#34;version&#34;: tool.get_version()
                 }
 
                 if len(tool.get_hashes()) &gt; 0:
-                    hashes = []
+                    hashes: list[dict[str, str]] = []
                     for tool_hash in tool.get_hashes():
                         hashes.append({
                             &#34;alg&#34;: tool_hash.get_algorithm().value,
                             &#34;content&#34;: tool_hash.get_hash_value()
                         })
                     tool_dict[&#39;hashes&#39;] = hashes
-
-                metadata[&#39;tools&#39;].append(tool_dict)
+                tools.append(tool_dict)
+            metadata[&#39;tools&#39;] = tools
 
         return metadata</code></pre>
 </details>
@@ -333,7 +340,7 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/json.py#L29-L30" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/json.py#L30-L31" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def output_as_string(self) -&gt; str:
     return json.dumps(self._get_json())</code></pre>
@@ -343,7 +350,7 @@ inheritance.</p></div>
 </dd>
 <dt id="cyclonedx.output.json.JsonV1Dot0"><code class="flex name class">
 <span>class <span class="ident">JsonV1Dot0</span></span>
-<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a> = None)</span>
+<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -351,7 +358,7 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/json.py#L133-L134" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/json.py#L137-L138" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class JsonV1Dot0(Json, SchemaVersion1Dot0):
     pass</code></pre>
@@ -367,7 +374,7 @@ inheritance.</p></div>
 </dd>
 <dt id="cyclonedx.output.json.JsonV1Dot1"><code class="flex name class">
 <span>class <span class="ident">JsonV1Dot1</span></span>
-<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a> = None)</span>
+<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -375,7 +382,7 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/json.py#L137-L138" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/json.py#L141-L142" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class JsonV1Dot1(Json, SchemaVersion1Dot1):
     pass</code></pre>
@@ -391,7 +398,7 @@ inheritance.</p></div>
 </dd>
 <dt id="cyclonedx.output.json.JsonV1Dot2"><code class="flex name class">
 <span>class <span class="ident">JsonV1Dot2</span></span>
-<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a> = None)</span>
+<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -399,7 +406,7 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/json.py#L141-L142" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/json.py#L145-L146" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class JsonV1Dot2(Json, SchemaVersion1Dot2):
     pass</code></pre>
@@ -415,7 +422,7 @@ inheritance.</p></div>
 </dd>
 <dt id="cyclonedx.output.json.JsonV1Dot3"><code class="flex name class">
 <span>class <span class="ident">JsonV1Dot3</span></span>
-<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a> = None)</span>
+<span>(</span><span>bom: <a title="cyclonedx.model.bom.Bom" href="../model/bom.html#cyclonedx.model.bom.Bom">Bom</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -423,7 +430,7 @@ inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/f34e2c2bc7aed20968a5ac69337ed484d097af3b/cyclonedx/output/json.py#L145-L146" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/91447656c0914ceb2af2e4b7282292ec7b93f5bf/cyclonedx/output/json.py#L149-L150" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class JsonV1Dot3(Json, SchemaVersion1Dot3):
     pass</code></pre>
