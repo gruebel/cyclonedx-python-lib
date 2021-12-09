@@ -38,7 +38,7 @@ if you want to derive CycloneDX from declared dependencies.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/20035bb5dde8dd3b619b200aec7037c338b18c74/cyclonedx/parser/environment.py#L1-L81" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/07ebedcbab1554970496780bb8bf167f6fe4ad5c/cyclonedx/parser/environment.py#L1-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python"># encoding: utf-8
 
@@ -73,15 +73,14 @@ The Environment Parsers support population of the following data about Component
 import sys
 from pkg_resources import DistInfoDistribution  # type: ignore
 
-if sys.version_info &gt;= (3, 8, 0):
+if sys.version_info &gt;= (3, 8):
     from importlib.metadata import metadata
-    import email
+    from email.message import Message as _MetadataReturn
 else:
-    from importlib_metadata import metadata  # type: ignore
-    import email
+    from importlib_metadata import metadata
+    from importlib_metadata._meta import PackageMetadata as _MetadataReturn
 
 from . import BaseParser
-
 from ..model.component import Component
 
 
@@ -102,25 +101,22 @@ class EnvironmentParser(BaseParser):
             c = Component(name=i.project_name, version=i.version)
 
             i_metadata = self._get_metadata_for_package(i.project_name)
-            if &#39;Author&#39; in i_metadata.keys():
-                c.set_author(author=i_metadata.get(&#39;Author&#39;))
+            if &#39;Author&#39; in i_metadata:
+                c.set_author(author=i_metadata[&#39;Author&#39;])
 
-            if &#39;License&#39; in i_metadata.keys() and i_metadata.get(&#39;License&#39;) != &#39;UNKNOWN&#39;:
-                c.set_license(license_str=i_metadata.get(&#39;License&#39;))
+            if &#39;License&#39; in i_metadata and i_metadata[&#39;License&#39;] != &#39;UNKNOWN&#39;:
+                c.set_license(license_str=i_metadata[&#39;License&#39;])
 
-            if &#39;Classifier&#39; in i_metadata.keys():
-                for classifier in i_metadata.get_all(&#39;Classifier&#39;):
+            if &#39;Classifier&#39; in i_metadata:
+                for classifier in i_metadata[&#39;Classifier&#39;]:
                     if str(classifier).startswith(&#39;License :: OSI Approved :: &#39;):
                         c.set_license(license_str=str(classifier).replace(&#39;License :: OSI Approved :: &#39;, &#39;&#39;).strip())
 
             self._components.append(c)
 
     @staticmethod
-    def _get_metadata_for_package(package_name: str) -&gt; email.message.Message:
-        if sys.version_info &gt;= (3, 8, 0):
-            return metadata(package_name)
-        else:
-            return metadata(package_name)</code></pre>
+    def _get_metadata_for_package(package_name: str) -&gt; _MetadataReturn:
+        return metadata(package_name)</code></pre>
 </details>
 </section>
 <section>
@@ -142,7 +138,7 @@ class EnvironmentParser(BaseParser):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/cyclonedx-python-lib/blob/20035bb5dde8dd3b619b200aec7037c338b18c74/cyclonedx/parser/environment.py#L46-L81" class="git-link">Browse git</a>
+<a href="https://github.com/cyclonedx-python-lib/blob/07ebedcbab1554970496780bb8bf167f6fe4ad5c/cyclonedx/parser/environment.py#L45-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnvironmentParser(BaseParser):
     &#34;&#34;&#34;
@@ -161,25 +157,22 @@ class EnvironmentParser(BaseParser):
             c = Component(name=i.project_name, version=i.version)
 
             i_metadata = self._get_metadata_for_package(i.project_name)
-            if &#39;Author&#39; in i_metadata.keys():
-                c.set_author(author=i_metadata.get(&#39;Author&#39;))
+            if &#39;Author&#39; in i_metadata:
+                c.set_author(author=i_metadata[&#39;Author&#39;])
 
-            if &#39;License&#39; in i_metadata.keys() and i_metadata.get(&#39;License&#39;) != &#39;UNKNOWN&#39;:
-                c.set_license(license_str=i_metadata.get(&#39;License&#39;))
+            if &#39;License&#39; in i_metadata and i_metadata[&#39;License&#39;] != &#39;UNKNOWN&#39;:
+                c.set_license(license_str=i_metadata[&#39;License&#39;])
 
-            if &#39;Classifier&#39; in i_metadata.keys():
-                for classifier in i_metadata.get_all(&#39;Classifier&#39;):
+            if &#39;Classifier&#39; in i_metadata:
+                for classifier in i_metadata[&#39;Classifier&#39;]:
                     if str(classifier).startswith(&#39;License :: OSI Approved :: &#39;):
                         c.set_license(license_str=str(classifier).replace(&#39;License :: OSI Approved :: &#39;, &#39;&#39;).strip())
 
             self._components.append(c)
 
     @staticmethod
-    def _get_metadata_for_package(package_name: str) -&gt; email.message.Message:
-        if sys.version_info &gt;= (3, 8, 0):
-            return metadata(package_name)
-        else:
-            return metadata(package_name)</code></pre>
+    def _get_metadata_for_package(package_name: str) -&gt; _MetadataReturn:
+        return metadata(package_name)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
