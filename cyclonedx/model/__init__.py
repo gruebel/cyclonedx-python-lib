@@ -402,7 +402,7 @@ class ExternalReference:
         self.url = url
         self.comment = comment
         self.type = reference_type
-        self.hashes = set(hashes or [])
+        self.hashes = hashes or []
 
     @property
     def url(self) -> XsUri:
@@ -925,8 +925,8 @@ class OrganizationalEntity:
                 'One of name, urls or contacts must be supplied for an OrganizationalEntity - none supplied.'
             )
         self.name = name
-        self.url = set(urls or [])
-        self.contact = set(contacts or [])
+        self.url = urls or []
+        self.contact = contacts or []
 
     @property
     def name(self) -> Optional[str]:
@@ -998,8 +998,8 @@ class Tool:
         self.vendor = vendor
         self.name = name
         self.version = version
-        self.hashes = set(hashes or [])
-        self.external_references = set(external_references or [])
+        self.hashes = hashes or []
+        self.external_references = external_references or []
 
     @property
     def vendor(self) -> Optional[str]:

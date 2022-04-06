@@ -108,7 +108,7 @@ class IssueType:
         self.name = name
         self.description = description
         self.source = source
-        self.references = set(references or [])
+        self.references = references or []
 
     @property
     def type(self) -> IssueClassification:

@@ -53,15 +53,15 @@ class Service:
         self.name = name
         self.version = version
         self.description = description
-        self.endpoints = set(endpoints or [])
+        self.endpoints = endpoints or []
         self.authenticated = authenticated
         self.x_trust_boundary = x_trust_boundary
-        self.data = set(data or [])
-        self.licenses = set(licenses or [])
-        self.external_references = set(external_references or [])
-        self.services = set(services or [])
+        self.data = data or []
+        self.licenses = licenses or []
+        self.external_references = external_references or []
+        self.services = services or []
         self.release_notes = release_notes
-        self.properties = set(properties or [])
+        self.properties = properties or []
 
     @property
     def bom_ref(self) -> BomRef:

@@ -43,11 +43,11 @@ class ReleaseNotes:
         self.social_image = social_image
         self.description = description
         self.timestamp = timestamp
-        self.aliases = set(aliases or [])
-        self.tags = set(tags or [])
-        self.resolves = set(resolves or [])
-        self.notes = set(notes or [])
-        self.properties = set(properties or [])
+        self.aliases = aliases or []
+        self.tags = tags or []
+        self.resolves = resolves or []
+        self.notes = notes or []
+        self.properties = properties or []
 
     @property
     def type(self) -> str:
